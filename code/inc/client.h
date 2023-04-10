@@ -1,0 +1,5 @@
+#ifndef TCP_CHAT_CLIENT_H
+#define TCP_CHAT_CLIENT_H
+
+
+#endif //TCP_CHAT_CLIENT_H
