@@ -3,22 +3,26 @@ project(tcp_chat)
 
 set(CMAKE_CXX_STANDARD 20)
 
-find_package(Curses REQUIRED)
-include_directories(${CURSES_INCLUDE_DIR})
-set(CMAKE_CXX_FLAGS "-lncursesw")
-
 include(FetchContent)
 FetchContent_Declare(
         googletest
         URL https://github.com/google/googletest/archive/refs/heads/master.zip
 )
-# For Windows: Prevent overriding the parent project's compiler/linker settings
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
+FetchContent_Declare(
+        glog
+        GIT_REPOSITORY https://github.com/google/glog.git
+        GIT_TAG v0.6.0
+        SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/download_deps/glog
+)
 
-add_executable(Client "code/src/client.cpp" "test/src/client_test.cpp" code/inc/client.h code/inc/server.h)
-add_executable(Server "code/src/server.cpp" "test/src/server_test.cpp")
+FetchContent_MakeAvailable(googletest glog)
 
-target_link_libraries(Client gtest_main)
-target_link_libraries(Server gtest_main)
-target_link_libraries(Client ${CURSES_LIBRARY})
+add_executable(Client "code/src/client.cpp" "test/src/client_test.cpp" code/inc/client.h)
+add_executable(Server "code/src/server.cpp" "test/src/server_test.cpp" code/inc/server.h)
+
+add_custom_command(TARGET Server POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:Server>/logs)
+
+include_directories(glog::glog)
+target_link_libraries(Client gtest_main glog::glog)
+target_link_libraries(Server gtest_main glog::glog)

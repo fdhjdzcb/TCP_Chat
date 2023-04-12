@@ -9,6 +9,8 @@
 #include <cstring>
 #include <unordered_map>
 #include <stdexcept>
+#include <glog/logging.h>
+#include <sys/stat.h>
 
 struct Message{
     char* msg;
@@ -98,6 +100,16 @@ void *clientHandler(void *arg){
 }
 
 int main() {
+    //mkdir("/logs", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    google::InitGoogleLogging("Server");
+    FLAGS_log_dir = "logs";
+    FLAGS_logtostderr = false;
+    google::SetLogDestination(google::INFO, "log_file");
+
+    LOG(WARNING) << "Это предупреждение.";
+    LOG(ERROR) << "Это сообщение об ошибке.";
+    LOG(INFO) << "Это информационное сообщение.";
+
     sockaddr_in addr{};
     socklen_t sizeOfAddr = sizeof(addr);
     inet_pton(AF_INET, "127.0.0.1", &addr.sin_addr.s_addr);
