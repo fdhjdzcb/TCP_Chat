@@ -7,6 +7,7 @@ include(FetchContent)
 FetchContent_Declare(
         googletest
         URL https://github.com/google/googletest/archive/refs/heads/master.zip
+        SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/download_deps/gtest
 )
 FetchContent_Declare(
         glog
@@ -19,11 +20,6 @@ FetchContent_MakeAvailable(googletest glog)
 
 add_executable(Client "code/src/client.cpp" "test/src/client_test.cpp" code/inc/client.h)
 add_executable(Server "code/src/server.cpp" "test/src/server_test.cpp" code/inc/server.h)
-
-#[[
-add_custom_command(TARGET Server POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:Server>/logs)
-]]
 
 include_directories(glog::glog)
 target_link_libraries(Client gtest_main glog::glog)
