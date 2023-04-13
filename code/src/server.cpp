@@ -1,5 +1,5 @@
-#include <../../../inc/server.h>
-#include <../../../inc/common.h>
+#include "../../inc/server.h"
+#include "../../inc/common.h"
 
 pthread_t thread_id1;
 std::unordered_map<int, std::string> Connections;
