@@ -1,11 +1,5 @@
-#include <iostream>
-#include <vector>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <pthread.h>
-#include <unistd.h>
-#include <string>
+#include <../../../inc/client.h>
+#include <../../../inc/common.h>
 
 void* receiveMsgFromServer(void *arg){
     int Connection = *((int *) arg);
@@ -17,7 +11,7 @@ void* receiveMsgFromServer(void *arg){
         msg[msg_size] = '\0';
         if(recv(Connection, msg, msg_size, 0) == -1)
             continue;
-
+        LOG(INFO) << "Получено сообщение: " << msg;
         std::cout << msg << std::endl;
         delete[] msg;
     }
@@ -35,6 +29,14 @@ void* receiveMsgFromServer(void *arg){
 };*/
 
 int main() {
+    google::InitGoogleLogging("Client");
+    mkdir("logs", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    FLAGS_log_dir = "logs";
+    FLAGS_logtostderr = false;
+    FLAGS_stderrthreshold = 3;
+    FLAGS_logbufsecs = 1;
+    google::SetLogDestination(google::INFO, "logs/client_log_file");
+
     int Connection;
     pthread_t receiver_th;
 
@@ -47,11 +49,12 @@ int main() {
     Connection = socket(AF_INET, SOCK_STREAM, 0);
     int connErrNum = connect(Connection, (sockaddr *) &addr, sizeOfAddr);
     if (connErrNum < 0) {
+        LOG(ERROR) << "Ошибка подключения к серверу, номер ошибки: " << connErrNum;
         std::cout << "Error: failed connect to server. Errno: " << connErrNum << std::endl;
         return 1;
     }
     std::cout << "Connected!\n";
-
+    LOG(INFO) << "Клиент подключен к серверу на сокете " << Connection;
 
     std::string msg;
     std::cout << "Введите ваше имя: ";
@@ -63,6 +66,7 @@ int main() {
         size_t msg_size = msg.size();
         send(Connection, (char *) &msg_size, sizeof(int), 0);
         send(Connection, msg.c_str(), msg_size, 0);
+        LOG(INFO) << "Сообщение отправлено. Текст: " << msg;
         usleep(10);
     }
     pthread_cancel(receiver_th);

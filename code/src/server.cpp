@@ -1,21 +1,5 @@
-#include <iostream>
-#include <vector>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <pthread.h>
-#include <unistd.h>
-#include <cstring>
-#include <unordered_map>
-#include <stdexcept>
-#include <glog/logging.h>
-#include <sys/stat.h>
-
-struct Message {
-    char *msg;
-    size_t msg_size;
-};
+#include <../../../inc/server.h>
+#include <../../../inc/common.h>
 
 pthread_t thread_id1;
 std::unordered_map<int, std::string> Connections;
@@ -116,7 +100,7 @@ int main() {
     FLAGS_logtostderr = false;
     FLAGS_stderrthreshold = 3;
     FLAGS_logbufsecs = 1;
-    google::SetLogDestination(google::INFO, "logs/log_file");
+    google::SetLogDestination(google::INFO, "logs/server_log_file");
 
     LOG(INFO) << "Сервер начал работу";
 
