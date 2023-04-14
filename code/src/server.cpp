@@ -4,6 +4,37 @@
 pthread_t thread_id1;
 std::unordered_map<int, std::string> Connections;
 
+
+void configLOGS(){
+    mkdir("logs", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    FLAGS_log_dir = "logs";
+    FLAGS_logtostderr = false;
+    FLAGS_stderrthreshold = 3;
+    FLAGS_logbufsecs = 1;
+    google::SetLogDestination(google::INFO, "logs/server_log_file");
+}
+
+void configPort(auto &addr){
+    auto IP = "127.0.0.1";
+    auto port = 1111;
+    inet_pton(AF_INET, IP, &addr.sin_addr.s_addr);
+    addr.sin_port = htons(port);
+    addr.sin_family = AF_INET;
+}
+
+int createListenSocket(auto &addr, auto &sizeOfAddr){
+    int sListen = socket(AF_INET, SOCK_STREAM, 0);
+    int optval = 1;
+    setsockopt(sListen, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+
+    bind(sListen, (sockaddr *) &addr, sizeOfAddr);
+    std::cout << "Waiting for client...\n";
+    listen(sListen, SOMAXCONN);
+    std::cout << "ListenSocketID: " << sListen << std::endl;
+    LOG(INFO) << "Сервер слушает сокет " << sListen;
+    return sListen;
+}
+
 Message stringToChar(std::string &msg) {
     size_t msg_size = msg.size();
     char *cmsg = new char[msg_size + 1];
@@ -120,31 +151,15 @@ void *clientHandler(void *arg) {
 
 int main() {
     google::InitGoogleLogging("Server");
-    mkdir("logs", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-    FLAGS_log_dir = "logs";
-    FLAGS_logtostderr = false;
-    FLAGS_stderrthreshold = 3;
-    FLAGS_logbufsecs = 1;
-    google::SetLogDestination(google::INFO, "logs/server_log_file");
+    configLOGS();
 
     LOG(INFO) << "Сервер начал работу";
 
     sockaddr_in addr{};
     socklen_t sizeOfAddr = sizeof(addr);
-    inet_pton(AF_INET, "127.0.0.1", &addr.sin_addr.s_addr);
-    addr.sin_port = htons(1111);
-    addr.sin_family = AF_INET;
+    configPort(addr);
 
-    int sListen = socket(AF_INET, SOCK_STREAM, 0);
-    int optval = 1;
-    setsockopt(sListen, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
-
-    bind(sListen, (sockaddr *) &addr, sizeOfAddr);
-    std::cout << "Waiting for client...\n";
-    listen(sListen, SOMAXCONN);
-    std::cout << "ListenSocketID: " << sListen << std::endl;
-    LOG(INFO) << "Сервер слушает сокет " << sListen;
-
+    int sListen = createListenSocket(addr, sizeOfAddr);
 
     int newConnection;
     while (true) {
