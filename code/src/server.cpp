@@ -18,6 +18,13 @@ Message stringToChar(std::string &msg) {
     return {cmsg, msg_size + 1};
 }
 
+
+void addName(std::string &msg, int socketID){
+    std::string msgWithName = Connections[socketID];
+    msgWithName.append(": ");
+    msg = msgWithName + msg;
+}
+
 std::string receiveMsgFromClient(int socketID) {
     int msg_size;
     int recvRes = recv(socketID, (char *) &msg_size, sizeof(int), 0);
@@ -47,48 +54,66 @@ void sendMsgToClients(std::string &msg) {
     LOG(INFO) << "Всем клиентам отправлено сообщение: " << newMsg.msg;
 };
 
-void welcome(int socketID) {
+void addClientToList(std::string &msg, const auto &name){
+    msg.append(" ");
+    msg.append(name);
+    msg.append(",");
+}
+
+std::string createWelcomeMsg(int socketID){
     std::string welcomeMsg = "Привет! Сейчас в чате:";
     for (const auto &conn: Connections) {
-        welcomeMsg.append(" ");
-        welcomeMsg.append(conn.second);
-        welcomeMsg.append(",");
+        addClientToList(welcomeMsg, conn.second);
     }
     welcomeMsg[welcomeMsg.length() - 1] = '!';
+    return welcomeMsg;
+}
+
+void welcome(int socketID) {
+    std::string welcomeMsg = createWelcomeMsg(socketID);
+
     LOG(INFO) << "Клиенту на сокете " << socketID << " отправлено приветственное сообщение:\n" << welcomeMsg;
     auto newMsg = stringToChar(welcomeMsg);
     send(socketID, (char *) &newMsg.msg_size, sizeof(int), 0);
     send(socketID, newMsg.msg, newMsg.msg_size, 0);
 }
 
+void deleteClient(int socketID){
+    shutdown(socketID, SHUT_RDWR);
+    close(socketID);
+    LOG(WARNING) << "Клиент " << Connections[socketID] << " с сокета " << socketID << " отключен";
+    Connections.erase(socketID);
+    LOG(INFO) << "Сокет " << socketID << " закрыт";
+}
+
+void receiveNameFromClient(int socketID){
+    std::string username;
+    username = receiveMsgFromClient(socketID);
+    if (!username.empty()) {
+        Connections[socketID] = username;
+        LOG(INFO) << "Клиенту на сокете " << socketID << " присвоено имя " << username;
+        welcome(socketID);
+    }
+}
+
 void *clientHandler(void *arg) {
     int socketID = *((int *) arg);
 
     try {
-        std::string username = receiveMsgFromClient(socketID);
-        Connections[socketID] = username;
-        welcome(socketID);
-        LOG(INFO) << "Клиенту на сокете " << socketID << " присвоено имя " << username;
-
+        receiveNameFromClient(socketID);
         while (true) {
-            std::string msg = Connections[socketID];
-            msg.append(": ");
             std::string msgFromClient = receiveMsgFromClient(socketID);
-            msg.append(msgFromClient);
 
             LOG(INFO) << "От клиента " << Connections[socketID] << " на сокете " << socketID << " получено сообщение:\n"
                       << msgFromClient;
 
-            sendMsgToClients(msg);
+            addName(msgFromClient, socketID);
+            sendMsgToClients(msgFromClient);
         }
     }
     catch (const std::runtime_error &e) {
-        LOG(WARNING) << "Клиент " << Connections[socketID] << " с сокета " << socketID << " отключен";
-        shutdown(socketID, SHUT_RDWR);
-        close(socketID);
         std::cerr << e.what() << std::endl;
-        Connections.erase(socketID);
-        LOG(INFO) << "Сокет " << socketID << " закрыт";
+        deleteClient(socketID);
         return nullptr;
     }
 }
@@ -130,10 +155,6 @@ int main() {
             std::cout << "Client connection error\n";
             LOG(ERROR) << "Ошибка подключения клиента";
         } else {
-            Connections[newConnection] = "name";
-            for (auto conn: Connections) {
-                std::cout << "map: " << conn.first << " " << conn.second << std::endl;
-            }
             pthread_create(&thread_id1, nullptr, &clientHandler, &newConnection);
             std::cout << "Client connected! Num of clients: " << Connections.size() << "\n";
             LOG(INFO) << "Клиент подключен к сокету " << newConnection;
