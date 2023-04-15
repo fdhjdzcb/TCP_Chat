@@ -3,27 +3,18 @@ project(tcp_chat)
 
 set(CMAKE_CXX_STANDARD 20)
 
-include(FetchContent)
-FetchContent_Declare(
-        googletest
-        URL https://github.com/google/googletest/archive/refs/heads/master.zip
-        SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/download_deps/gtest
-)
-FetchContent_Declare(
-        glog
-        GIT_REPOSITORY https://github.com/google/glog.git
-        GIT_TAG v0.6.0
-        SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/download_deps/glog
-)
+find_package(GTest REQUIRED)
+find_package(glog REQUIRED)
 
-FetchContent_MakeAvailable(googletest glog)
+add_library(ClientLib "code/client.cpp" "inc/clientFuncs.cpp" "inc/client.h" "inc/common.h")
+add_executable(Client "code/client.cpp" inc/clientFuncs.cpp)
+add_executable(ClientTests "test/client_test.cpp" inc/clientFuncs.cpp)
 
-add_library(ClientLib "code/src/client.cpp" "inc/client.h" "inc/common.h")
-add_executable(Client "code/src/client.cpp" "test/src/client_test.cpp" inc/client.h inc/common.h)
+add_library(ServerLib "code/server.cpp" "inc/serverFuncs.cpp" "inc/server.h" "inc/common.h")
+add_executable(Server "code/server.cpp" inc/serverFuncs.cpp)
+add_executable(ServerTests "test/server_test.cpp" inc/serverFuncs.cpp)
 
-add_library(ServerLib "code/src/server.cpp" "inc/server.h" "inc/common.h")
-add_executable(Server "code/src/server.cpp" "test/src/server_test.cpp" inc/server.h inc/common.h)
-
-include_directories(glog::glog)
-target_link_libraries(Client ClientLib gtest_main glog::glog)
-target_link_libraries(Server ServerLib gtest_main glog::glog)
+target_link_libraries(Client ClientLib GTest::Main glog::glog)
+target_link_libraries(Server ServerLib GTest::Main glog::glog)
+target_link_libraries(ClientTests ClientLib GTest::Main glog::glog)
+target_link_libraries(ServerTests ServerLib GTest::Main glog::glog)

@@ -1,5 +1,5 @@
-#include "../../inc/client.h"
-#include "../../inc/common.h"
+#include "../inc/client.h"
+#include "../inc/common.h"
 
 void* receiveMsgFromServer(void *arg){
     int Connection = *((int *) arg);

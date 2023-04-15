@@ -11,5 +11,6 @@
 #include <unistd.h>
 #include <string>
 #include <glog/logging.h>
+#include <gtest/gtest.h>
 
 #endif //TCP_CHAT_COMMON_H

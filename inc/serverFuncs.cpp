@@ -1,9 +1,4 @@
-#include "../../inc/server.h"
-#include "../../inc/common.h"
-
-pthread_t thread_id1;
-std::unordered_map<int, std::string> Connections;
-
+#include "server.h"
 
 void configLOGS() {
     mkdir("logs", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -14,7 +9,7 @@ void configLOGS() {
     google::SetLogDestination(google::INFO, "logs/server_log_file");
 }
 
-void configPort(auto &addr) {
+void configPort(sockaddr_in &addr) {
     auto IP = "127.0.0.1";
     auto port = 1111;
     inet_pton(AF_INET, IP, &addr.sin_addr.s_addr);
@@ -22,13 +17,12 @@ void configPort(auto &addr) {
     addr.sin_family = AF_INET;
 }
 
-int createListenSocket(auto &addr, auto &sizeOfAddr) {
+int createListenSocket(sockaddr_in &addr, socklen_t &sizeOfAddr) {
     int sListen = socket(AF_INET, SOCK_STREAM, 0);
     int optval = 1;
     setsockopt(sListen, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
 
     bind(sListen, (sockaddr * ) & addr, sizeOfAddr);
-    std::cout << "Waiting for client...\n";
     listen(sListen, SOMAXCONN);
     std::cout << "ListenSocketID: " << sListen << std::endl;
     LOG(INFO) << "Сервер слушает сокет " << sListen;
@@ -149,34 +143,5 @@ void *clientHandler(void *arg) {
         std::cerr << e.what() << std::endl;
         deleteClient(socketID);
         return nullptr;
-    }
-}
-
-int main() {
-    google::InitGoogleLogging("Server");
-    configLOGS();
-
-    LOG(INFO) << "Сервер начал работу";
-
-    sockaddr_in addr{};
-    socklen_t sizeOfAddr = sizeof(addr);
-    configPort(addr);
-
-    int sListen = createListenSocket(addr, sizeOfAddr);
-
-    int newConnection;
-    while (true) {
-        newConnection = accept(sListen, (sockaddr * ) & addr, &sizeOfAddr);
-        std::cout << "Connection socket: " << newConnection << std::endl;
-
-        if (newConnection == 0) {
-            std::cout << "Client connection error\n";
-            LOG(ERROR) << "Ошибка подключения клиента";
-        } else {
-            pthread_create(&thread_id1, nullptr, &clientHandler, &newConnection);
-            std::cout << "Client connected! Num of clients: " << Connections.size() << "\n";
-            LOG(INFO) << "Клиент подключен к сокету " << newConnection;
-            LOG(INFO) << "Общее количество клиентов: " << Connections.size();
-        }
     }
 }

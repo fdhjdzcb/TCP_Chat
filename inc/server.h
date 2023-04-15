@@ -3,6 +3,10 @@
 
 #include <unordered_map>
 #include <stdexcept>
+#include "common.h"
+
+extern pthread_t thread_id1;
+extern std::unordered_map<int, std::string> Connections;
 
 struct Message{
     char* msg;
@@ -10,8 +14,8 @@ struct Message{
 };
 
 void configLOGS();
-void configPort(auto &addr);
-int createListenSocket(auto &addr, auto &sizeOfAddr);
+void configPort(sockaddr_in &addr);
+int createListenSocket(sockaddr_in &addr, socklen_t &sizeOfAddr);
 
 Message stringToMessageStruct(const std::string &msg);
 
