@@ -59,8 +59,6 @@ std::string receiveMsgFromClient(int socketID) {
     int msg_size;
     int recvSizeRes = recv(socketID, (char *) &msg_size, sizeof(int), 0);
 
-    std::cout << "Размер сообщения: " << msg_size << std::endl;
-
     if (recvSizeRes == 0 or msg_size <= 0) {
         throw std::runtime_error("Client from socket " + std::to_string(socketID) + " disconnected");
     }
