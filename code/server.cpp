@@ -1,6 +1,6 @@
 #include "../inc/server.h"
 
-pthread_t thread_id1;
+pthread_t thread_id;
 std::unordered_map<int, std::string> Connections;
 
 int main(int argc, char **argv) {
@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
             std::cout << "Client connection error\n";
             LOG(ERROR) << "Ошибка подключения клиента";
         } else {
-            pthread_create(&thread_id1, nullptr, &clientHandler, &newConnection);
+            pthread_create(&thread_id, nullptr, &clientHandler, &newConnection);
             std::cout << "Client connected! Num of clients: " << Connections.size() << "\n";
             LOG(INFO) << "Клиент подключен к сокету " << newConnection;
             LOG(INFO) << "Общее количество клиентов: " << Connections.size();

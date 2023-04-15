@@ -17,7 +17,7 @@ void configPort(sockaddr_in &addr) {
     addr.sin_family = AF_INET;
 }
 
-int createListenSocket(sockaddr_in &addr, socklen_t &sizeOfAddr) {
+int createListenSocket(sockaddr_in &addr, const socklen_t &sizeOfAddr) {
     int sListen = socket(AF_INET, SOCK_STREAM, 0);
     int optval = 1;
     setsockopt(sListen, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));

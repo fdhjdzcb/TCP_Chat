@@ -5,12 +5,12 @@
 #include <stdexcept>
 #include "common.h"
 
-extern pthread_t thread_id1;
+extern pthread_t thread_id;
 extern std::unordered_map<int, std::string> Connections;
 
 void configLOGS();
 void configPort(sockaddr_in &addr);
-int createListenSocket(sockaddr_in &addr, socklen_t &sizeOfAddr);
+int createListenSocket(sockaddr_in &addr, const socklen_t &sizeOfAddr);
 
 void addName(std::string &msg, int socketID);
 std::string receiveMsgFromClient(int socketID);
