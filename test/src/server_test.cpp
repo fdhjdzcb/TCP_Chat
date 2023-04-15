@@ -4,6 +4,6 @@
 TEST(ServerTests, num1) {
     std::string testStr = "hello, world";
     Message testMSG = {(char *) "hello, world", 12};
-    ASSERT_EQ(testMSG.msg, stringToChar(testStr).msg);
-    ASSERT_EQ(testMSG.msg_size, stringToChar(testStr).msg_size);
+    ASSERT_EQ(testMSG.msg, stringToMessageStruct(testStr).msg);
+    ASSERT_EQ(testMSG.msg_size, stringToMessageStruct(testStr).msg_size);
 }

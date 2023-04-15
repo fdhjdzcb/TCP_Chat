@@ -57,13 +57,16 @@ int main() {
     LOG(INFO) << "Клиент подключен к серверу на сокете " << Connection;
 
     std::string msg;
-    std::cout << "Введите ваше имя: ";
+    //std::cout << "Введите ваше имя: ";
 
     pthread_create(&receiver_th, nullptr, &receiveMsgFromServer, &Connection);
     //pthread_create(&sender_th, nullptr, &sendMsgToServer, nullptr);
     while (true) {
         std::getline(std::cin, msg);
         size_t msg_size = msg.size();
+        if (msg_size == 0){
+            continue;
+        }
         send(Connection, (char *) &msg_size, sizeof(int), 0);
         send(Connection, msg.c_str(), msg_size, 0);
         LOG(INFO) << "Сообщение отправлено. Текст: " << msg;
