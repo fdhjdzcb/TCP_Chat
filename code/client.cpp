@@ -1,32 +1,4 @@
 #include "../inc/client.h"
-#include "../inc/common.h"
-
-void* receiveMsgFromServer(void *arg){
-    int Connection = *((int *) arg);
-    int msg_size;
-    while(true){
-        if(recv(Connection, (char *) &msg_size, sizeof(int), 0) == -1)
-            continue;
-        char *msg = new char[msg_size + 1];
-        msg[msg_size] = '\0';
-        if(recv(Connection, msg, msg_size, 0) == -1)
-            continue;
-        LOG(INFO) << "Получено сообщение: " << msg;
-        std::cout << msg << std::endl;
-        delete[] msg;
-    }
-};
-
-/*void* sendMsgToServer(void *arg){
-    std::string msg1;
-    while(true){
-        std::getline(std::cin, msg1);
-        int msg_size = msg1.size();
-        send(Connection, (char *) &msg_size, sizeof(int), 0);
-        send(Connection, msg1.c_str(), msg_size, 0);
-        usleep(100);
-    }
-};*/
 
 int main() {
     google::InitGoogleLogging("Client");
@@ -56,21 +28,18 @@ int main() {
     std::cout << "Connected!\n";
     LOG(INFO) << "Клиент подключен к серверу на сокете " << Connection;
 
-    std::string msg;
-    //std::cout << "Введите ваше имя: ";
-
     pthread_create(&receiver_th, nullptr, &receiveMsgFromServer, &Connection);
-    //pthread_create(&sender_th, nullptr, &sendMsgToServer, nullptr);
+
+    std::string name;
+    std::string msg;
+    getMsg(name);
+    sendMsg(Connection, name); //send name
+
     while (true) {
-        std::getline(std::cin, msg);
-        size_t msg_size = msg.size();
-        if (msg_size == 0){
-            continue;
-        }
-        send(Connection, (char *) &msg_size, sizeof(int), 0);
-        send(Connection, msg.c_str(), msg_size, 0);
+        getMsg(msg); //send ordinary message
+        std::cout << "\033[1A\033[2K"; //стереть введенное сообщение
+        sendMsg(Connection, msg);
         LOG(INFO) << "Сообщение отправлено. Текст: " << msg;
-        usleep(10);
     }
     pthread_cancel(receiver_th);
     //pthread_cancel(sender_th);

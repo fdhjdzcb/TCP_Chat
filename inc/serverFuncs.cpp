@@ -29,20 +29,6 @@ int createListenSocket(sockaddr_in &addr, socklen_t &sizeOfAddr) {
     return sListen;
 }
 
-Message stringToMessageStruct(const std::string &msg) {
-    size_t msg_size = msg.size();
-    char *cmsg = new char[msg_size + 1];
-    strcpy(cmsg, msg.c_str());
-    cmsg[msg_size] = '\0';
-
-    LOG(INFO) << "Сообщение преобразовано из std::string в структуру Message:"
-              << "\nСообщение: " << cmsg
-              << "\nРазмер: " << msg_size + 1
-              << "\n";
-
-    return {cmsg, msg_size + 1};
-}
-
 void addName(std::string &msg, int socketID) {
     std::string msgWithName = Connections[socketID];
     msgWithName.append(": ");
@@ -62,7 +48,6 @@ std::string receiveMsgFromClient(int socketID) {
     msg[msg_size] = '\0';
 
     LOG(INFO) << "Получено сообщение с сокета " << socketID
-              << "\nОт клиента: " << Connections[socketID]
               << "\nРезультат recv: " << recvSizeRes
               << "\nСообщение: " << msg;
 
@@ -70,9 +55,10 @@ std::string receiveMsgFromClient(int socketID) {
 };
 
 void sendMsg(int socketID, std::string &msg) {
-    auto newMsg = stringToMessageStruct(msg);
-    send(socketID, (char *) &newMsg.msg_size, sizeof(int), 0);
-    send(socketID, newMsg.msg, newMsg.msg_size, 0);
+    //auto newMsg = stringToMessageStruct(msg);
+    size_t msg_size = msg.size();
+    send(socketID, (char *) &msg_size, sizeof(int), 0);
+    send(socketID, msg.c_str(), msg_size, 0);
 }
 
 void sendMsgToClients(std::string &msg) {
@@ -89,11 +75,16 @@ void addClientToList(std::string &msg, const auto &name) {
 }
 
 std::string createWelcomeMsg() {
-    std::string welcomeMsg = "Привет! Сейчас в чате:";
-    for (const auto &conn: Connections) {
-        addClientToList(welcomeMsg, conn.second);
+    std::string welcomeMsg;
+    if (Connections.empty()){
+        welcomeMsg = "Привет! Сейчас в чате никого нет!";
+    } else {
+        welcomeMsg = "Привет! Сейчас в чате:";
+        for (const auto &conn: Connections) {
+            addClientToList(welcomeMsg, conn.second);
+        }
+        welcomeMsg[welcomeMsg.length() - 1] = '!';
     }
-    welcomeMsg[welcomeMsg.length() - 1] = '!';
     return welcomeMsg;
 }
 
@@ -115,9 +106,9 @@ void receiveNameFromClient(int socketID) {
     std::string username;
     username = receiveMsgFromClient(socketID);
     if (!username.empty()) {
+        welcome(socketID);
         Connections[socketID] = username;
         LOG(INFO) << "Клиенту на сокете " << socketID << " присвоено имя " << username;
-        welcome(socketID);
     }
 }
 

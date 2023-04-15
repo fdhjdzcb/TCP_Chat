@@ -8,16 +8,9 @@
 extern pthread_t thread_id1;
 extern std::unordered_map<int, std::string> Connections;
 
-struct Message{
-    char* msg;
-    size_t msg_size;
-};
-
 void configLOGS();
 void configPort(sockaddr_in &addr);
 int createListenSocket(sockaddr_in &addr, socklen_t &sizeOfAddr);
-
-Message stringToMessageStruct(const std::string &msg);
 
 void addName(std::string &msg, int socketID);
 std::string receiveMsgFromClient(int socketID);
