@@ -85,6 +85,7 @@ void sendMsg(int socketID, std::string &msg) { //отправляет сообщ
 void getMsg(std::string &msg){ //получает введенное сообщение
     while (true){
         std::getline(std::cin, msg);
+
         if (msg.empty()) {
             std::cout << "\033[1A\033[2K"; //если пустая строка, стирает её из консоли
             continue;

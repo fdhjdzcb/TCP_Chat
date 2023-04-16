@@ -55,8 +55,11 @@ std::string receiveMsgFromClient(int socketID) { //получает сообще
               << "\nРезультат recv: " << recvSizeRes
               << "\nСообщение: " << msg;
 
-    return msg;
-};
+    std::string strmsg = msg;
+    delete[] msg;
+
+    return strmsg;
+}
 
 void sendMsg(int socketID, std::string &msg) { //отправляет сообщение msg клиенту по указанному идентификатору сокета socketID
     size_t msg_size = msg.size();
@@ -109,6 +112,8 @@ void deleteClient(int socketID) { //закрывает сокет и удаля�
 void receiveNameFromClient(int socketID) { //принимает имя пользователя от клиента, который подключился к указанному идентификатору сокета socketID
     std::string username;
     username = receiveMsgFromClient(socketID);
+    std::string infomsg = username + " вошел в чат!";
+    sendMsgToClients(infomsg);
     if (!username.empty()) {
         welcome(socketID);
         Connections[socketID] = username;

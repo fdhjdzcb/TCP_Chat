@@ -1,6 +1,8 @@
 #include "../inc/client.h"
 
 int main(int argc, char **argv) {
+    setlocale(LC_ALL, "russian");
+
     google::InitGoogleLogging("Client"); //инициализация библиотеки для логирования
     configLOGS();
 
@@ -9,7 +11,6 @@ int main(int argc, char **argv) {
     LOG(INFO) << "Клиент начал работу";
 
     sockaddr_in addr{}; //настройка адреса сокета, который будет использоваться для соединения
-    socklen_t sizeOfAddr = sizeof(addr);
     configPort(addr);
 
     int Connection = connectToServer(addr); //подключение к серверу

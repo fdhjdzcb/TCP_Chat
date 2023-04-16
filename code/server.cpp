@@ -4,6 +4,8 @@ pthread_t thread_id;
 std::unordered_map<int, std::string> Connections;
 
 int main(int argc, char **argv) {
+    setlocale(LC_ALL, "russian");
+
     google::InitGoogleLogging("Server"); //инициализация библиотеки для логирования
     configLOGS();
 
