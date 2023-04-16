@@ -1,6 +1,6 @@
 #include "server.h"
 
-void configLOGS() {
+void configLOGS() { //настройка логирования с помощью библиотеки Google Logging
     mkdir("logs", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     FLAGS_log_dir = "logs";
     FLAGS_logtostderr = false;
@@ -9,7 +9,7 @@ void configLOGS() {
     google::SetLogDestination(google::INFO, "logs/server_log_file");
 }
 
-void configPort(sockaddr_in &addr) {
+void configPort(sockaddr_in &addr) { //настройка адреса сокета, который будет использоваться для соединения
     auto IP = "127.0.0.1";
     auto port = 1111;
     inet_pton(AF_INET, IP, &addr.sin_addr.s_addr);
@@ -17,25 +17,29 @@ void configPort(sockaddr_in &addr) {
     addr.sin_family = AF_INET;
 }
 
-int createListenSocket(sockaddr_in &addr, const socklen_t &sizeOfAddr) {
+int createListenSocket(sockaddr_in &addr, const socklen_t &sizeOfAddr) { //создание слушающего сокета для прослушивания входящих соединений
     int sListen = socket(AF_INET, SOCK_STREAM, 0);
     int optval = 1;
     setsockopt(sListen, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
 
-    bind(sListen, (sockaddr * ) & addr, sizeOfAddr);
+    int bindRes = bind(sListen, (sockaddr * ) & addr, sizeOfAddr);
+    if (bindRes == -1){
+        LOG(FATAL) << "Не удалось связать адрес и порт сокета с указанным идентификатором sListen";
+    }
+
     listen(sListen, SOMAXCONN);
     std::cout << "ListenSocketID: " << sListen << std::endl;
     LOG(INFO) << "Сервер слушает сокет " << sListen;
     return sListen;
 }
 
-void addName(std::string &msg, int socketID) {
+void addName(std::string &msg, int socketID) { //добавляет имя пользователя к сообщению перед отправкой
     std::string msgWithName = Connections[socketID];
     msgWithName.append(": ");
-    msg = msgWithName + msg;
+    msg = msgWithName + msg; //msg == "Name: текст сообщения"
 }
 
-std::string receiveMsgFromClient(int socketID) {
+std::string receiveMsgFromClient(int socketID) { //получает сообщение от клиента по указанному идентификатору сокета socketID
     int msg_size;
     int recvSizeRes = recv(socketID, (char *) &msg_size, sizeof(int), 0);
 
@@ -54,27 +58,26 @@ std::string receiveMsgFromClient(int socketID) {
     return msg;
 };
 
-void sendMsg(int socketID, std::string &msg) {
-    //auto newMsg = stringToMessageStruct(msg);
+void sendMsg(int socketID, std::string &msg) { //отправляет сообщение msg клиенту по указанному идентификатору сокета socketID
     size_t msg_size = msg.size();
     send(socketID, (char *) &msg_size, sizeof(int), 0);
     send(socketID, msg.c_str(), msg_size, 0);
 }
 
-void sendMsgToClients(std::string &msg) {
+void sendMsgToClients(std::string &msg) { //отправляет итоговое сообщение msg всем клиентам
     for (auto [socketID, username]: Connections) {
         sendMsg(socketID, msg);
     }
     LOG(INFO) << "Всем клиентам отправлено сообщение: " << msg;
 };
 
-void addClientToList(std::string &msg, const auto &name) {
+void addClientToList(std::string &msg, const auto &name) { //добавляет имя очередного клиента к сообщению
     msg.append(" ");
     msg.append(name);
     msg.append(",");
 }
 
-std::string createWelcomeMsg() {
+std::string createWelcomeMsg() { //создает привественное сообщение в формате "Привет! Сейчас в чате: name1, name2, ..., nameN"
     std::string welcomeMsg;
     if (Connections.empty()){
         welcomeMsg = "Привет! Сейчас в чате никого нет!";
@@ -88,51 +91,55 @@ std::string createWelcomeMsg() {
     return welcomeMsg;
 }
 
-void welcome(int socketID) {
+void welcome(int socketID) { //отправляет приветственное сообщение клиенту
     std::string welcomeMsg = createWelcomeMsg();
     sendMsg(socketID, welcomeMsg);
     LOG(INFO) << "Клиенту на сокете " << socketID << " отправлено приветственное сообщение:\n" << welcomeMsg;
 }
 
-void deleteClient(int socketID) {
+void deleteClient(int socketID) { //закрывает сокет и удаляет клиента с указанным идентификатором socketID
     shutdown(socketID, SHUT_RDWR);
     close(socketID);
     LOG(WARNING) << "Клиент " << Connections[socketID] << " с сокета " << socketID << " отключен";
+
     Connections.erase(socketID);
     LOG(INFO) << "Сокет " << socketID << " закрыт";
 }
 
-void receiveNameFromClient(int socketID) {
+void receiveNameFromClient(int socketID) { //принимает имя пользователя от клиента, который подключился к указанному идентификатору сокета socketID
     std::string username;
     username = receiveMsgFromClient(socketID);
     if (!username.empty()) {
         welcome(socketID);
         Connections[socketID] = username;
+
         LOG(INFO) << "Клиенту на сокете " << socketID << " присвоено имя " << username;
+        LOG(INFO) << "Общее количество клиентов: " << Connections.size();
     }
 }
 
-void *clientHandler(void *arg) {
+void *clientHandler(void *arg) { //принимает и отправляет сообщения
     int socketID = *((int *) arg);
 
     std::string getName = "Введите ваше имя: ";
     sendMsg(socketID, getName);
+
     try {
-        receiveNameFromClient(socketID);
+        receiveNameFromClient(socketID); //получает имя клиента
         while (true) {
-            std::string msgFromClient = receiveMsgFromClient(socketID);
+            std::string msgFromClient = receiveMsgFromClient(socketID); //получает сообщение
 
             LOG(INFO) << "От клиента " << Connections[socketID]
                       << " на сокете " << socketID
                       << " получено сообщение:\n" << msgFromClient;
 
-            addName(msgFromClient, socketID);
-            sendMsgToClients(msgFromClient);
+            addName(msgFromClient, socketID); //добавляет к сообщению имя отправителя
+            sendMsgToClients(msgFromClient); //отправляет всем клиентам
         }
     }
     catch (const std::runtime_error &e) {
-        std::cerr << e.what() << std::endl;
-        deleteClient(socketID);
+        std::cerr << e.what() << std::endl; // "Client from socket N disconnected"
+        deleteClient(socketID); //закрывает сокет и удаляет клиента
         return nullptr;
     }
 }

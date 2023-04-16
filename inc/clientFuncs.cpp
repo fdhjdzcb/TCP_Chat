@@ -16,20 +16,26 @@ void* receiveMsgFromServer(void *arg){
     }
 }
 
-int connectToServer(sockaddr_in &addr, const socklen_t &sizeOfAddr){
-    int Connection = socket(AF_INET, SOCK_STREAM, 0);
-    int connErrNum = connect(Connection, (sockaddr *) &addr, sizeOfAddr);
-    if (connErrNum < 0) {
+int connectToServer(sockaddr_in &addr, const socklen_t &sizeOfAddr){ //подключение к серверу
+    int socketID = socket(AF_INET, SOCK_STREAM, 0); //создание сокета
+    if (socketID == -1){
+        LOG(ERROR) << "Не удалось создать сокет";
+        return -1;
+    }
+
+    int connErrNum = connect(socketID, (sockaddr *) &addr, sizeOfAddr); //подключение к сокету
+    if (connErrNum == -1) {
         LOG(ERROR) << "Ошибка подключения к серверу, номер ошибки: " << connErrNum;
         std::cout << "Error: failed connect to server. Errno: " << connErrNum << std::endl;
         return -1;
     }
+
     std::cout << "Connected!\n";
-    LOG(INFO) << "Клиент подключен к серверу на сокете " << Connection;
-    return Connection;
+    LOG(INFO) << "Клиент подключен к серверу на сокете " << socketID; //все ОК
+    return socketID;
 }
 
-void configLOGS() {
+void configLOGS() { //настройка логирования с помощью библиотеки Google Logging
     mkdir("logs", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     FLAGS_log_dir = "logs";
     FLAGS_logtostderr = false;
@@ -38,7 +44,7 @@ void configLOGS() {
     google::SetLogDestination(google::INFO, "logs/server_log_file");
 }
 
-void configPort(sockaddr_in &addr) {
+void configPort(sockaddr_in &addr) { //настройка адреса сокета, который будет использоваться для соединения
     auto IP = "127.0.0.1";
     auto port = 1111;
     inet_pton(AF_INET, IP, &addr.sin_addr.s_addr);
@@ -47,17 +53,17 @@ void configPort(sockaddr_in &addr) {
 }
 
 
-void sendMsg(int socketID, std::string &msg) {
+void sendMsg(int socketID, std::string &msg) { //отправляет сообщение msg серверу
     size_t msg_size = msg.size();
     send(socketID, (char *) &msg_size, sizeof(int), 0);
     send(socketID, msg.c_str(), msg_size, 0);
 }
 
-void getMsg(std::string &msg){
+void getMsg(std::string &msg){ //получает введенное сообщение
     while (true){
         std::getline(std::cin, msg);
         if (msg.empty()) {
-            std::cout << "\033[1A\033[2K";
+            std::cout << "\033[1A\033[2K"; //если пустая строка, стирает её из консоли
             continue;
         }
         break;
