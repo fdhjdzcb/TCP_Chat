@@ -17,6 +17,6 @@ void configPort(sockaddr_in &addr);
 
 void sendMsg(int socketID, std::string &msg);
 
-void getMsg(std::string &msg);
+std::string getMsg();
 
 #endif //TCP_CHAT_CLIENT_H
