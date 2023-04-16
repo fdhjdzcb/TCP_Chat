@@ -3,22 +3,18 @@ project(tcp_chat)
 
 set(CMAKE_CXX_STANDARD 20)
 
-find_package(Curses REQUIRED)
-include_directories(${CURSES_INCLUDE_DIR})
-set(CMAKE_CXX_FLAGS "-lncursesw")
+find_package(GTest REQUIRED)
+find_package(glog REQUIRED)
 
-include(FetchContent)
-FetchContent_Declare(
-        googletest
-        URL https://github.com/google/googletest/archive/refs/heads/master.zip
-)
-# For Windows: Prevent overriding the parent project's compiler/linker settings
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
+add_library(ServerLib "code/server.cpp" "inc/serverFuncs.cpp" "inc/server.h" "inc/common.h")
+add_executable(Server "code/server.cpp")
+add_executable(ServerTests "test/server_test.cpp")
 
-add_executable(Client "code/src/client.cpp" "test/src/client_test.cpp" code/inc/client.h code/inc/server.h)
-add_executable(Server "code/src/server.cpp" "test/src/server_test.cpp")
+add_library(ClientLib "code/client.cpp" "inc/clientFuncs.cpp" "inc/client.h" "inc/common.h")
+add_executable(Client "code/client.cpp")
+add_executable(ClientTests "test/client_test.cpp")
 
-target_link_libraries(Client gtest_main)
-target_link_libraries(Server gtest_main)
-target_link_libraries(Client ${CURSES_LIBRARY})
+target_link_libraries(Server ServerLib GTest::Main glog::glog gmock)
+target_link_libraries(Client ClientLib GTest::Main glog::glog gmock)
+target_link_libraries(ServerTests ServerLib GTest::Main glog::glog gmock)
+target_link_libraries(ClientTests ClientLib GTest::Main glog::glog gmock)
