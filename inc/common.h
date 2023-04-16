@@ -12,5 +12,6 @@
 #include <string>
 #include <glog/logging.h>
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 #endif //TCP_CHAT_COMMON_H

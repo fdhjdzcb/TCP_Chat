@@ -1,47 +1,12 @@
 #include "client.h"
 
-void* receiveMsgFromServer(void *arg){
-    int Connection = *((int *) arg);
-    int msg_size;
-    while(true){
-        if(recv(Connection, (char *) &msg_size, sizeof(int), 0) == -1)
-            continue;
-        char *msg = new char[msg_size + 1];
-        msg[msg_size] = '\0';
-        if(recv(Connection, msg, msg_size, 0) == -1)
-            continue;
-        LOG(INFO) << "Получено сообщение: " << msg;
-        std::cout << msg << std::endl;
-        delete[] msg;
-    }
-}
-
-int connectToServer(sockaddr_in &addr, const socklen_t &sizeOfAddr){ //подключение к серверу
-    int socketID = socket(AF_INET, SOCK_STREAM, 0); //создание сокета
-    if (socketID == -1){
-        LOG(ERROR) << "Не удалось создать сокет";
-        return -1;
-    }
-
-    int connErrNum = connect(socketID, (sockaddr *) &addr, sizeOfAddr); //подключение к сокету
-    if (connErrNum == -1) {
-        LOG(ERROR) << "Ошибка подключения к серверу, номер ошибки: " << connErrNum;
-        std::cout << "Error: failed connect to server. Errno: " << connErrNum << std::endl;
-        return -1;
-    }
-
-    std::cout << "Connected!\n";
-    LOG(INFO) << "Клиент подключен к серверу на сокете " << socketID; //все ОК
-    return socketID;
-}
-
 void configLOGS() { //настройка логирования с помощью библиотеки Google Logging
     mkdir("logs", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     FLAGS_log_dir = "logs";
     FLAGS_logtostderr = false;
     FLAGS_stderrthreshold = 3;
     FLAGS_logbufsecs = 1;
-    google::SetLogDestination(google::INFO, "logs/server_log_file");
+    google::SetLogDestination(google::INFO, "logs/client_log_file");
 }
 
 void configPort(sockaddr_in &addr) { //настройка адреса сокета, который будет использоваться для соединения
@@ -52,6 +17,64 @@ void configPort(sockaddr_in &addr) { //настройка адреса соке�
     addr.sin_family = AF_INET;
 }
 
+void* receiveMsgFromServer(void *arg){ //получение сообщений от сервера
+    int Connection = *((int *) arg);
+    int msg_size;
+
+    while(true){
+        int recvRes = recv(Connection, (char *) &msg_size, sizeof(int), 0); //получение размера сообщения
+        switch (recvRes) {
+            case -1: //сообщений нет
+                continue;
+            case 0: //сервер отключен
+                shutdown(Connection, SHUT_RDWR);
+                close(Connection);
+                LOG(FATAL) << "Сервер отключен";
+                break;
+            default: //все ОК
+                char *msg = new char[msg_size + 1];
+                msg[msg_size] = '\0';
+                recv(Connection, msg, msg_size, 0); //получение самого сообщения
+
+                LOG(INFO) << "Получено сообщение: " << msg;
+
+                std::cout << msg << std::endl;
+                delete[] msg;
+        }
+    }
+}
+
+int createSocket(){ //создание сокета
+    int socketID = socket(AF_INET, SOCK_STREAM, 0);
+    if (socketID == -1){
+        LOG(ERROR) << "Не удалось создать сокет";
+    } else {
+        LOG(INFO) << "Сокет создан, дескриптор: " << socketID;
+    }
+    return socketID;
+}
+
+int connectToServerBySocket(int socketID, sockaddr_in &addr){ //подключение к конкретному сокету
+    int connRes = connect(socketID, (sockaddr *) &addr, sizeof(addr)); //подключение к сокету
+    if (connRes == -1) {
+        LOG(ERROR) << "Ошибка подключения к серверу, номер ошибки: " << connRes;
+        std::cout << "Error: failed connect to server. Errno: " << connRes << std::endl;
+    }
+
+    return connRes;
+}
+
+int connectToServer(sockaddr_in &addr){ //подключение к серверу
+    int socketID = createSocket();
+
+    int connRes = connectToServerBySocket(socketID, addr);
+
+    if (connRes == 0) {
+        std::cout << "Connected!\n";
+        LOG(INFO) << "Клиент подключен к серверу на сокете " << socketID; //все ОК
+    }
+    return socketID;
+}
 
 void sendMsg(int socketID, std::string &msg) { //отправляет сообщение msg серверу
     size_t msg_size = msg.size();

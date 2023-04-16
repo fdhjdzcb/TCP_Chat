@@ -17,12 +17,12 @@ void configPort(sockaddr_in &addr) { //настройка адреса соке�
     addr.sin_family = AF_INET;
 }
 
-int createListenSocket(sockaddr_in &addr, const socklen_t &sizeOfAddr) { //создание слушающего сокета для прослушивания входящих соединений
+int createListenSocket(sockaddr_in &addr) { //создание слушающего сокета для прослушивания входящих соединений
     int sListen = socket(AF_INET, SOCK_STREAM, 0);
     int optval = 1;
     setsockopt(sListen, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
 
-    int bindRes = bind(sListen, (sockaddr * ) & addr, sizeOfAddr);
+    int bindRes = bind(sListen, (sockaddr * ) & addr, sizeof(addr));
     if (bindRes == -1){
         LOG(FATAL) << "Не удалось связать адрес и порт сокета с указанным идентификатором sListen";
     }

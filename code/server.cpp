@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
     socklen_t sizeOfAddr = sizeof(addr);
     configPort(addr);
 
-    int sListen = createListenSocket(addr, sizeOfAddr);
+    int sListen = createListenSocket(addr);
 
     int newConnection; //переменная для первичной записи нового клиента
     while (true) {

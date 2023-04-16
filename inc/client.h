@@ -5,7 +5,11 @@
 
 void* receiveMsgFromServer(void *arg);
 
-int connectToServer(sockaddr_in &addr, const socklen_t &sizeOfAddr);
+int createSocket();
+
+int connectToServerBySocket(int socketID, sockaddr_in &addr);
+
+int connectToServer(sockaddr_in &addr);
 
 void configLOGS();
 

@@ -11,6 +11,8 @@ TEST(ServerTests, createEmptyWelcomeMsg){
     ASSERT_EQ("Привет! Сейчас в чате никого нет!", createWelcomeMsg());
 }
 
+
+
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

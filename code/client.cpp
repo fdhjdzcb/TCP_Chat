@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
     socklen_t sizeOfAddr = sizeof(addr);
     configPort(addr);
 
-    int Connection = connectToServer(addr, sizeOfAddr); //подключение к серверу
+    int Connection = connectToServer(addr); //подключение к серверу
     if (Connection == -1){
         LOG(ERROR) << "Не удалось подключиться к серверу";
         return 1;

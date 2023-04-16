@@ -10,7 +10,7 @@ extern std::unordered_map<int, std::string> Connections;
 
 void configLOGS();
 void configPort(sockaddr_in &addr);
-int createListenSocket(sockaddr_in &addr, const socklen_t &sizeOfAddr);
+int createListenSocket(sockaddr_in &addr);
 
 void addName(std::string &msg, int socketID);
 std::string receiveMsgFromClient(int socketID);
