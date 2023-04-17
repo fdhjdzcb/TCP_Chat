@@ -57,8 +57,8 @@ int createSocket(){ //создание сокета
 int connectToServerBySocket(int socketID, sockaddr_in &addr){ //подключение к конкретному сокету
     int connRes = connect(socketID, (sockaddr *) &addr, sizeof(addr)); //подключение к сокету
     if (connRes == -1) {
-        LOG(ERROR) << "Ошибка подключения к серверу, номер ошибки: " << connRes;
         std::cout << "Error: failed connect to server. Errno: " << connRes << std::endl;
+        LOG(FATAL) << "Ошибка подключения к серверу, номер ошибки: " << connRes;
     }
 
     return connRes;

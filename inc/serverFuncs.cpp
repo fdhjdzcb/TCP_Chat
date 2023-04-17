@@ -1,5 +1,7 @@
 #include "server.h"
 
+std::unordered_map<int, std::string> Connections;
+
 void configLOGS() { //настройка логирования с помощью библиотеки Google Logging
     mkdir("logs", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     FLAGS_log_dir = "logs";
