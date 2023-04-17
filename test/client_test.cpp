@@ -42,6 +42,10 @@ TEST(GetMsgTest, NonEmptyInput) {
 }
 
 int main(int argc, char **argv) {
+    google::InitGoogleLogging("ServerTests");
+    configLOGS();
+
     ::testing::InitGoogleTest(&argc, argv);
+
     return RUN_ALL_TESTS();
 }
