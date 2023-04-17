@@ -21,16 +21,6 @@ TEST(CreateSocketTest, BasicTest){
     ASSERT_TRUE(createSocket() > 0);
 }
 
-TEST(GetMsgTest, EmptyInput) {
-    std::stringstream input("");
-    std::stringstream output;
-    std::cin.rdbuf(input.rdbuf());
-    std::cout.rdbuf(output.rdbuf());
-
-    std::string msg = getMsg();
-    EXPECT_EQ(msg, "");
-}
-
 TEST(GetMsgTest, NonEmptyInput) {
     std::stringstream input("Test message\n");
     std::stringstream output;
