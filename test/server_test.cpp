@@ -1,6 +1,6 @@
 #include "../inc/server.h"
 
-using namespace testing;
+std::unordered_map<int, std::string> Connections;
 
 TEST(LoggingTest, ConfigLogs) {
     configLOGS();
