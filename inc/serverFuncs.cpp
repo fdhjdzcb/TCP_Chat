@@ -103,10 +103,13 @@ void welcome(int socketID) { //отправляет приветственное
 void deleteClient(int socketID) { //закрывает сокет и удаляет клиента с указанным идентификатором socketID
     shutdown(socketID, SHUT_RDWR);
     close(socketID);
-    LOG(WARNING) << "Клиент " << Connections[socketID] << " с сокета " << socketID << " отключен";
+    std::string username = Connections[socketID];
+    LOG(WARNING) << "Клиент " << username << " с сокета " << socketID << " отключен";
+    LOG(INFO) << "Сокет " << socketID << " закрыт";
 
     Connections.erase(socketID);
-    LOG(INFO) << "Сокет " << socketID << " закрыт";
+    std::string exitMsg = username + " покинул чат.";
+    sendMsgToClients(exitMsg);
 }
 
 void receiveNameFromClient(int socketID) { //принимает имя пользователя от клиента, который подключился к указанному идентификатору сокета socketID

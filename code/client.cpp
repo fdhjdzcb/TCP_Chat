@@ -24,11 +24,11 @@ int main(int argc, char **argv) {
 
     std::string name;
     std::string msg;
-    getMsg(name); // ввод имени
+    name = getMsg(); // ввод имени
     sendMsg(Connection, name); //отправка имени серверу
 
     while (true) {
-        getMsg(msg); //отправка обычного сообщения серверу
+        msg = getMsg(); //отправка обычного сообщения серверу
         std::cout << "\033[1A\033[2K"; //стирает введенное сообщение из консоли
         sendMsg(Connection, msg); //отправляет сообщение серверу
         LOG(INFO) << "Сообщение отправлено. Текст: " << msg;
