@@ -14,7 +14,7 @@ add_library(ClientLib "code/client.cpp" "inc/clientFuncs.cpp" "inc/client.h" "in
 add_executable(Client "code/client.cpp")
 add_executable(ClientTests "test/client_test.cpp")
 
-target_link_libraries(Server ServerLib GTest::Main glog::glog gmock)
-target_link_libraries(Client ClientLib GTest::Main glog::glog gmock)
-target_link_libraries(ServerTests ServerLib GTest::Main glog::glog gmock)
-target_link_libraries(ClientTests ClientLib GTest::Main glog::glog gmock)
+target_link_libraries(Server ServerLib GTest::Main glog::glog)
+target_link_libraries(Client ClientLib GTest::Main glog::glog)
+target_link_libraries(ServerTests ServerLib GTest::Main glog::glog)
+target_link_libraries(ClientTests ClientLib GTest::Main glog::glog)
